@@ -1,0 +1,118 @@
+@model StudentIndexViewModel
+@{
+    ViewData["Title"] = "Students";
+
+    // Local helper that builds a sort link, preserving the current search term.
+    string SortUrl(string column) => Url.Action("Index", new
+    {
+        searchTerm = Model.SearchTerm,
+        sortColumn = column,
+        sortDirection = Model.OppositeSortDirection(column),
+        page = 1,
+        pageSize = Model.PageSize
+    })!;
+
+    string SortIcon(string column) => Model.SortColumn == column
+        ? (Model.SortDirection == "asc" ? "bi-sort-alpha-down" : "bi-sort-alpha-up")
+        : "bi-arrow-down-up text-muted";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1><i class="bi bi-people-fill"></i> Students</h1>
+    <a asp-action="Create" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Add New Student
+    </a>
+</div>
+
+<!-- Search box -->
+<form method="get" asp-action="Index" class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input type="text" name="searchTerm" value="@Model.SearchTerm" class="form-control"
+               placeholder="Search by number, name, email or course..." />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+    {
+        <div class="col-auto">
+            <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    }
+    <input type="hidden" name="sortColumn" value="@Model.SortColumn" />
+    <input type="hidden" name="sortDirection" value="@Model.SortDirection" />
+</form>
+
+<!-- Record count -->
+<p class="text-muted">
+    Showing @Model.Students.Count() of @Model.TotalRecords total record(s)
+    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+    {
+        <span>matching "<strong>@Model.SearchTerm</strong>"</span>
+    }
+</p>
+
+<div class="table-responsive">
+    <table class="table table-hover table-striped align-middle shadow-sm bg-white">
+        <thead class="table-dark">
+            <tr>
+                <th><a class="text-white text-decoration-none" href="@SortUrl("StudentNumber")">Student # <i class="bi @SortIcon("StudentNumber")"></i></a></th>
+                <th><a class="text-white text-decoration-none" href="@SortUrl("FirstName")">Name <i class="bi @SortIcon("FirstName")"></i></a></th>
+                <th><a class="text-white text-decoration-none" href="@SortUrl("Email")">Email <i class="bi @SortIcon("Email")"></i></a></th>
+                <th><a class="text-white text-decoration-none" href="@SortUrl("Course")">Course <i class="bi @SortIcon("Course")"></i></a></th>
+                <th><a class="text-white text-decoration-none" href="@SortUrl("YearLevel")">Year <i class="bi @SortIcon("YearLevel")"></i></a></th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var student in Model.Students)
+            {
+                <tr>
+                    <td>@student.StudentNumber</td>
+                    <td>@student.FirstName @student.LastName</td>
+                    <td>@student.Email</td>
+                    <td>@student.Course</td>
+                    <td>@student.YearLevel</td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@student.StudentId" class="btn btn-sm btn-outline-info" title="View Details">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a asp-action="Edit" asp-route-id="@student.StudentId" class="btn btn-sm btn-outline-primary" title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@student.StudentId" class="btn btn-sm btn-outline-danger" title="Delete">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+            @if (!Model.Students.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No students found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Student list pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(Model.HasPreviousPage ? "" : "disabled")">
+                <a class="page-link" href="@Url.Action("Index", new { searchTerm = Model.SearchTerm, sortColumn = Model.SortColumn, sortDirection = Model.SortDirection, page = Model.CurrentPage - 1, pageSize = Model.PageSize })">Previous</a>
+            </li>
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <a class="page-link" href="@Url.Action("Index", new { searchTerm = Model.SearchTerm, sortColumn = Model.SortColumn, sortDirection = Model.SortDirection, page = i, pageSize = Model.PageSize })">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.HasNextPage ? "" : "disabled")">
+                <a class="page-link" href="@Url.Action("Index", new { searchTerm = Model.SearchTerm, sortColumn = Model.SortColumn, sortDirection = Model.SortDirection, page = Model.CurrentPage + 1, pageSize = Model.PageSize })">Next</a>
+            </li>
+        </ul>
+    </nav>
+}

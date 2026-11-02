@@ -1,0 +1,25 @@
+@model StudentManagement.Models.ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="text-center">
+    <h1 class="text-danger"><i class="bi bi-exclamation-octagon-fill"></i> An error occurred</h1>
+    <p class="lead">Sorry, something went wrong while processing your request.</p>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-warning d-inline-block">@Model.Message</div>
+    }
+
+    @if (Model.ShowRequestId)
+    {
+        <p>
+            <strong>Request ID:</strong> <code>@Model.RequestId</code>
+        </p>
+    }
+
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">
+        <i class="bi bi-house-fill"></i> Back to Dashboard
+    </a>
+</div>
